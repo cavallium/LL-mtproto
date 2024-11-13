@@ -54,7 +54,7 @@ async def test():
 
     datacenter_info = TelegramDatacenter.VESTA
     address_resolver = CachedTransportAddressResolver()
-    transport_link_factory = TransportLinkTcpFactory(TransportCodecPerformanceTrackFactory(TransportCodecAbridgedFactory()), address_resolver)
+    transport_link_factory = TransportLinkTcpFactory(TransportCodecPerformanceTrackFactory(TransportCodecAbridgedFactory()), address_resolver, None)
     blocking_executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
     crypto_provider = CryptoProviderCryptg()
 

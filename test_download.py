@@ -31,7 +31,7 @@ async def test(api_id: int, api_hash: str, bot_token: str):
 
     address_resolver = CachedTransportAddressResolver()
 
-    transport_link_factory = TransportLinkTcpFactory(TransportCodecIntermediateFactory(), address_resolver)
+    transport_link_factory = TransportLinkTcpFactory(TransportCodecIntermediateFactory(), address_resolver, None)
 
     blocking_executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 

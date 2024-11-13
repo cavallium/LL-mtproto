@@ -22,7 +22,7 @@ crypto_provider = CryptoProviderCryptg()
 
 resolver = CachedTransportAddressResolver()
 
-link = TransportLinkTcpFactory(TransportCodecAbridgedFactory(), resolver)
+link = TransportLinkTcpFactory(TransportCodecAbridgedFactory(), resolver, None)
 
 
 async def in_thread(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:

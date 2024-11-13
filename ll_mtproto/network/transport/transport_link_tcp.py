@@ -195,14 +195,17 @@ class TransportLinkTcp(TransportLinkBase):
 
 
 class TransportLinkTcpFactory(TransportLinkFactory):
-    __slots__ = ("_transport_codec_factory", "_resolver")
+    __slots__ = ("_transport_codec_factory", "_resolver", "_proxy")
 
     _transport_codec_factory: TransportCodecFactory
     _resolver: TransportAddressResolverBase
+    _proxy: TransportProxySocks5Info | None
 
-    def __init__(self, transport_codec_factory: TransportCodecFactory, resolver: TransportAddressResolverBase):
+    def __init__(self, transport_codec_factory: TransportCodecFactory, resolver: TransportAddressResolverBase,
+                 proxy: TransportProxySocks5Info | None):
         self._transport_codec_factory = transport_codec_factory
         self._resolver = resolver
+        self._proxy = proxy
 
     def new_transport_link(self, datacenter: DatacenterInfo) -> TransportLinkBase:
-        return TransportLinkTcp(datacenter, self._transport_codec_factory, self._resolver)
+        return TransportLinkTcp(datacenter, self._transport_codec_factory, self._resolver, self._proxy)
