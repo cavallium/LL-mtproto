@@ -100,7 +100,7 @@ class TransportLinkTcp(TransportLinkBase):
                 address, port = await self._resolver.get_address(self._datacenter)
 
                 if self._proxy is not None:
-                    def create_socks5_connection(socks5_address: str, timeout=None, source_address=None):
+                    def create_socks5_connection(socks5_address, source_address=None, *, all_errors=False):
                         newsock = socks.socksocket()
                         newsock.connect(socks5_address)
                         return newsock
