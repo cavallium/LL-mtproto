@@ -20,6 +20,7 @@ import asyncio
 import ipaddress
 import logging
 import socket
+import socks
 import traceback
 
 from ll_mtproto.network.datacenter_info import DatacenterInfo
@@ -30,6 +31,8 @@ from ll_mtproto.network.transport.transport_link_base import TransportLinkBase
 from ll_mtproto.network.transport.transport_link_factory import TransportLinkFactory
 
 __all__ = ("TransportLinkTcp", "TransportLinkTcpFactory")
+
+from ll_mtproto.network.transport.transport_proxy_socks5_info import TransportProxySocks5Info
 
 
 class TransportLinkTcp(TransportLinkBase):
@@ -43,7 +46,8 @@ class TransportLinkTcp(TransportLinkBase):
         "_read_buffer",
         "_transport_codec_factory",
         "_transport_codec",
-        "_resolver"
+        "_resolver",
+        "_proxy"
     )
 
     _loop: asyncio.AbstractEventLoop
@@ -56,18 +60,21 @@ class TransportLinkTcp(TransportLinkBase):
     _transport_codec: TransportCodecBase | None
     _transport_codec_factory: TransportCodecFactory
     _resolver: TransportAddressResolverBase
+    _proxy: TransportProxySocks5Info | None
 
     def __init__(
             self,
             datacenter: DatacenterInfo,
             transport_codec_factory: TransportCodecFactory,
-            resolver: TransportAddressResolverBase
+            resolver: TransportAddressResolverBase,
+            proxy: TransportProxySocks5Info | None
     ):
         self._loop = asyncio.get_running_loop()
 
         self._datacenter = datacenter
         self._transport_codec_factory = transport_codec_factory
         self._resolver = resolver
+        self._proxy = proxy
 
         self._connect_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
@@ -92,12 +99,30 @@ class TransportLinkTcp(TransportLinkBase):
                 transport_codec = self._transport_codec_factory.new_codec()
                 address, port = await self._resolver.get_address(self._datacenter)
 
+                if self._proxy is not None:
+                    def create_socks5_connection(socks5_address: str, timeout=None, source_address=None):
+                        newsock = socks.socksocket()
+                        newsock.connect(socks5_address)
+                        return newsock
+
+                    socks.set_default_proxy(socks.PROXY_TYPE_SOCKS5, self._proxy.address, self._proxy.port, True, self._proxy.user, self._proxy.password)
+
+                    # patch the socket module
+                    socket.socket = socks.socksocket
+                    socket.create_connection = create_socks5_connection
+
                 match address_version := ipaddress.ip_address(address):
                     case ipaddress.IPv4Address():
-                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        if self._proxy is not None:
+                            sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
+                        else:
+                            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                     case ipaddress.IPv6Address():
-                        sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                        if self._proxy is not None:
+                            sock = socks.socksocket(socket.AF_INET6, socket.SOCK_STREAM)
+                        else:
+                            sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 
                     case _:
                         raise TypeError(f"Invalid IP address: `{address_version!r}` `{address!r}`")
