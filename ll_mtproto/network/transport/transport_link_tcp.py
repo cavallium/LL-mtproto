@@ -100,16 +100,7 @@ class TransportLinkTcp(TransportLinkBase):
                 address, port = await self._resolver.get_address(self._datacenter)
 
                 if self._proxy is not None:
-                    def create_socks5_connection(socks5_address, source_address=None, *, all_errors=False):
-                        newsock = socks.socksocket()
-                        newsock.connect(socks5_address)
-                        return newsock
-
                     socks.set_default_proxy(socks.PROXY_TYPE_SOCKS5, self._proxy.address, self._proxy.port, True, self._proxy.user, self._proxy.password)
-
-                    # patch the socket module
-                    socket.socket = socks.socksocket
-                    socket.create_connection = create_socks5_connection
 
                 match address_version := ipaddress.ip_address(address):
                     case ipaddress.IPv4Address():
