@@ -26,6 +26,7 @@ from ll_mtproto.crypto.providers.crypto_provider_cryptg import CryptoProviderCry
 from ll_mtproto.network.transport.transport_address_resolver_cached import CachedTransportAddressResolver
 from ll_mtproto.network.transport.transport_codec_intermediate import TransportCodecIntermediateFactory
 from ll_mtproto.network.transport.transport_link_tcp import TransportLinkTcpFactory
+from ll_mtproto.network.transport.transport_proxy_socks5_info import TransportProxySocks5Info
 
 __all__ = (
     "Client",
@@ -38,5 +39,6 @@ __all__ = (
     "CachedTransportAddressResolver",
     "TransportCodecIntermediateFactory",
     "TransportLinkTcpFactory",
+    "TransportProxySocks5Info",
     "PwrTelegramErrorDescriptionResolver"
 )
